@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Auto Check Element</title>
+    <style>
+        auto-check { display: block; }
+    </style>
+</head>
+<body>
+    <form action="#">
+        <auto-check href="/existed" msg='{"typeMismatch": "type mismatch", "valueMismatch": "value mismatch"}'>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email">
+        </auto-check>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script src="../dist/index.umd.js"></script>
+    <script type="text/javascript">
+        function autoCheck(event) {
+            const element = event.target;
+            if (!(element instanceof window.HTMlAutoCheckElement)) return;
+
+            switch (element.type) {
+                case 'auto-check:ajax-start':
+                    element.classList.remove('is-successful', 'is-errored');
+                    element.classList.add('is-loading');
+                    break;
+                case 'auto-check:ajax-end':
+                    element.classList.remove('is-loading');
+                    break;
+                case 'auto-check:success':
+                    element.classList.remove('is-loading', 'is-errored');
+                    element.classList.add('is-successful');
+                    break;
+                case 'auto-check:error':
+                    element.classList.remove('is-loading', 'is-successful');
+                    element.classList.add('is-errored');
+                    break;
+                default:
+                    return;
+            }
+        }
+        document.addEventListener('auto-check:ajax-start', autoCheck);
+        document.addEventListener('auto-check:ajax-end', autoCheck);
+        document.addEventListener('auto-check:success', autoCheck);
+        document.addEventListener('auto-check:error', autoCheck);
+    </script>
+</body>
+</html>

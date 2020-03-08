@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "charset": "utf8",
+    "target": "ESNext",
+    "module": "ESNext",
+    "removeComments": false,
+    "sourceMap": true,
+    "noImplicitAny": false
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
+}
