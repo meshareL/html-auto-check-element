@@ -1,4 +1,4 @@
-# <auto-check> Element
+# &lt;auto-check&gt; Element
 A form input validator
 
 ## Installation
