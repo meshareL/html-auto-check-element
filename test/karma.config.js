@@ -1,5 +1,4 @@
 'use strict';
-// import {ConfigOptions} from 'karma';
 
 // http://karma-runner.github.io/4.0/config/configuration-file.html
 function fetchMock() {

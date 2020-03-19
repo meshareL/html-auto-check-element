@@ -1,8 +1,8 @@
 'use strict';
 
 function debounce(fun: Function, interval = 300) {
-    let time = null;
-    return function () {
+    let time: number | null = null;
+    return function (this: any) {
         if (time) {
             window.clearTimeout(time);
             time = null;

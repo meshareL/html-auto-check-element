@@ -1,16 +1,21 @@
 {
   "compilerOptions": {
+    "strict": true,
     "lib": [
       "DOM",
       "DOM.Iterable",
       "ESNext"
     ],
-    "charset": "utf8",
+    "allowJs": true,
     "target": "ESNext",
     "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "removeComments": false,
     "sourceMap": true,
-    "noImplicitAny": false
+    "noEmit": true
   },
   "include": [
     "src/**/*"

@@ -1,4 +1,5 @@
 'use strict';
+import pluginClear from 'rollup-plugin-clear';
 import pluginTypescript from '@rollup/plugin-typescript';
 import pluginNodeResolve from '@rollup/plugin-node-resolve';
 import pluginCommonjs from '@rollup/plugin-commonjs';
@@ -22,6 +23,9 @@ export default {
         }
     ],
     plugins: [
+        pluginClear({
+            targets: ['dist']
+        }),
         pluginTypescript(),
         pluginNodeResolve(),
         pluginCommonjs(),

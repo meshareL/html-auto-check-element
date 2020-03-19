@@ -1,16 +1,17 @@
 'use strict';
 import {debounce} from './strict';
-import XHRError from './xhr-error';
+import {camelCase} from './util';
 
 const verifying = 'Verifying.....';
 const validationFailed = 'Validation failed';
 const checkFunctions = new WeakMap<HTMLAutoCheckElement, Function>();
+const validationMessages = new WeakMap<HTMLAutoCheckElement, { [key: string]: string }>();
+
 /**
  * HTML5验证错误类型
  * 去除customError与valid键
- * @type {string[]}
  */
-const errorTypes = [
+const errorTypes: string[] = [
     'typeMismatch',
     'badInput',
     'valueMissing',
@@ -39,6 +40,7 @@ function nativeValidate(event: Event): void {
     }
 
     if (input.checkValidity()) {
+        // The 'auto-check:native-success' event need to be dispatched ?
         checkElement.dispatchEvent(new CustomEvent(`auto-check:${checkElement.href ? 'native-success' : 'success'}`, {bubbles: true}));
 
         if (checkElement.href) {
@@ -55,7 +57,7 @@ function nativeValidate(event: Event): void {
         const message = hintText(input.validity, checkElement);
         if (!message) return;
 
-        checkElement.dispatchEvent(new CustomEvent('auto-check:error', {detail: {message}, bubbles: true}));
+        checkElement.dispatchEvent(new CustomEvent('auto-check:error', {detail: {response: message}, bubbles: true}));
     }
 }
 
@@ -77,39 +79,27 @@ function remoteValidate(checkElement: HTMLAutoCheckElement): void {
         method: 'GET',
         mode: 'cors',
         credentials: 'same-origin',
-        headers: new Headers({'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'})
+        headers: new Headers({'X-Requested-With': 'XMLHttpRequest', 'Accept': '*/*'})
     };
+
+    checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-send', {bubbles: true, detail: {requestInit: init}}));
 
     fetch(href, init)
         .then(stream => {
             if (stream.ok) {
-                return stream.text();
+                input.setCustomValidity('');
+                checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-end', {bubbles: true}));
+                checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-success', {bubbles: true, detail: {response: stream.clone()}}));
+                checkElement.dispatchEvent(new CustomEvent('auto-check:success', {bubbles: true, detail: {response: stream.clone()}}));
             } else {
-                throw new XHRError(stream);
+                input.setCustomValidity(validationFailed);
+                checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-end', {bubbles: true}));
+                checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-error', {bubbles: true, detail: {response: stream.clone()}}));
+                checkElement.dispatchEvent(new CustomEvent('auto-check:error', {bubbles: true, detail: {response: stream.clone()}}));
             }
         })
-        .then(() => {
-            input.setCustomValidity('');
-            checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-end', {bubbles: true}));
-            checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-success', {bubbles: true}));
-            checkElement.dispatchEvent(new CustomEvent('auto-check:success', {bubbles: true}));
-        })
-        .catch(async err => {
-            const eventInit: CustomEventInit = {bubbles: true, detail: {}};
-            if (err instanceof XHRError) {
-                try {
-                    const res = await err.response.json();
-                    eventInit.detail.message = res.message;
-                } catch (e) {
-                    eventInit.detail.message = validationFailed;
-                }
-            } else {
-                eventInit.detail.message = validationFailed;
-            }
-            input.setCustomValidity(eventInit.detail.message);
-            checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-end', {bubbles: true}));
-            checkElement.dispatchEvent(new CustomEvent('auto-check:ajax-error', eventInit));
-            checkElement.dispatchEvent(new CustomEvent('auto-check:error', eventInit));
+        .catch(error => {
+            checkElement.dispatchEvent(new CustomEvent('auto-check:network-error', {bubbles: true, detail: {error}}));
         });
 }
 
@@ -121,28 +111,37 @@ function remoteValidate(checkElement: HTMLAutoCheckElement): void {
  * @return text
  */
 function hintText(validityState: ValidityState, checkElement: HTMLAutoCheckElement): string | null {
-    let validationMessage = checkElement.msg;
+    const validationMessage = validationMessages.get(checkElement) || function () {
+        const msg = checkElement.msg;
+        if (!msg) return null;
+
+        let obj: { [key: string]: string };
+        try {
+            const message = JSON.parse(msg);
+            if (typeof message === 'object') {
+                obj = Object.assign(
+                    {all: ''},
+                    Object
+                        .entries<string>(message)
+                        .reduce((prev, [key, value]) => ({...prev, [camelCase(key)]: value}), {})
+                );
+            } else {
+                obj = {all: msg};
+            }
+        } catch (e) {
+            obj = {all: msg};
+        }
+        validationMessages.set(checkElement, obj);
+        return obj;
+    }();
+
     if (!validationMessage) return null;
 
-    let obj: {[key: string]: string};
-    try {
-        const message = JSON.parse(validationMessage);
-        if (typeof message === 'object') {
-            obj = Object.assign({all: ''}, message);
-        } else {
-          obj = {all: message};
-        }
-    } catch (e) {
-        obj = {all: validationMessage};
-    }
-    const type = errorTypes.find(value => Reflect.get(validityState, value)) || 'all';
+    const type = errorTypes.find(value => Reflect.get(validityState, value) === true) || 'all';
 
-    return obj[type];
+    return validationMessage[type] || validationMessage.all;
 }
 
-/**
- *
- */
 class HTMLAutoCheckElement extends HTMLElement {
     constructor() {
         super();
@@ -170,11 +169,21 @@ class HTMLAutoCheckElement extends HTMLElement {
         input.setCustomValidity('');
     }
 
+    static get observedAttributes(): string[] {
+        return ['msg'];
+    }
+
+    attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
+        if (name === 'msg') {
+            validationMessages.delete(this);
+        }
+    }
+
     get href(): string | null {
         const href = this.getAttribute('href');
         if (!href) return '';
 
-        const link = this.ownerDocument.createElement('a');
+        const link = (this.ownerDocument || document).createElement('a');
         link.href = href;
         return link.href;
     }
