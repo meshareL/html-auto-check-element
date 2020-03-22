@@ -216,13 +216,13 @@ class HTMLAutoCheckElement extends HTMLElement {
 }
 
 if (!window.customElements.get('auto-check')) {
-    window.HTMlAutoCheckElement = HTMLAutoCheckElement;
+    window.HTMLAutoCheckElement = HTMLAutoCheckElement;
     window.customElements.define('auto-check', HTMLAutoCheckElement);
 }
 
 declare global {
     interface Window {
-        HTMlAutoCheckElement: typeof HTMLAutoCheckElement
+        HTMLAutoCheckElement: typeof HTMLAutoCheckElement
     }
 }
 

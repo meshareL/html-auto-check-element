@@ -8,7 +8,7 @@ describe('html-auto-check-element', () => {
         });
 
         it('from constructor', () => {
-            const element = new window.HTMlAutoCheckElement();
+            const element = new window.HTMLAutoCheckElement();
             assert.equal(element.nodeName, 'AUTO-CHECK');
         });
     });
