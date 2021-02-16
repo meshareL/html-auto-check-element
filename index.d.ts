@@ -26,12 +26,6 @@ declare class HTMLAutoCheckElement extends HTMLElement {
     msg: string | null;
 }
 
-declare global {
-    interface Window {
-        HTMLAutoCheckElement: typeof HTMLAutoCheckElement;
-    }
-}
-
 /**
  * 元素值无效的提示信息
  * @see <a href="https://developer.mozilla.org/en-US/docs/Web/API/ValidityState">ValidityState</a>
@@ -59,5 +53,41 @@ interface InvalidMessage {
     all?: string;
 }
 
+declare type AutoCheckSuccessEvent = CustomEvent<{ response?: Response }>;
+declare type AutoCheckErrorEvent = CustomEvent<{ response: string | Response }>;
+declare type AutoCheckAjaxSendEvent = CustomEvent<{ requestInit: RequestInit }>;
+declare type AutoCheckAjaxSuccessEvent = CustomEvent<{ response: Response }>;
+declare type AutoCheckAjaxErrorEvent = CustomEvent<{ response: Response }>;
+declare type AutoCheckNetworkErrorEvent = CustomEvent<{ error: any }>;
+
+declare global {
+    interface Window {
+        HTMLAutoCheckElement: typeof HTMLAutoCheckElement;
+    }
+
+    interface HTMLElementTagNameMap {
+        'auto-check': HTMLAutoCheckElement;
+    }
+
+    interface GlobalEventHandlersEventMap {
+        'auto-check:success': AutoCheckSuccessEvent;
+        'auto-check:error': AutoCheckErrorEvent;
+        'auto-check:ajax-start': CustomEvent<void>;
+        'auto-check:ajax-send': AutoCheckAjaxSendEvent;
+        'auto-check:ajax-end': CustomEvent<void>;
+        'auto-check:ajax-success': AutoCheckAjaxSuccessEvent;
+        'auto-check:ajax-error': AutoCheckAjaxErrorEvent;
+        'auto-check:network-error': AutoCheckNetworkErrorEvent;
+    }
+}
+
 export default HTMLAutoCheckElement;
-export { InvalidMessage };
+export {
+    InvalidMessage,
+    AutoCheckSuccessEvent,
+    AutoCheckErrorEvent,
+    AutoCheckAjaxSendEvent,
+    AutoCheckAjaxSuccessEvent,
+    AutoCheckAjaxErrorEvent,
+    AutoCheckNetworkErrorEvent
+};

@@ -13,15 +13,14 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "removeComments": false,
+    "removeComments": true,
     "sourceMap": true,
-    "noEmit": true
+    "noEmit": false
   },
   "include": [
-    "src/**/*"
+    "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
+    "node_modules"
   ]
 }

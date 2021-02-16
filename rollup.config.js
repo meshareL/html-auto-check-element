@@ -1,9 +1,8 @@
 'use strict';
-import pluginClear from 'rollup-plugin-clear';
-import pluginTypescript from '@rollup/plugin-typescript';
 import pluginNodeResolve from '@rollup/plugin-node-resolve';
 import pluginCommonjs from '@rollup/plugin-commonjs';
-import pluginBabel from 'rollup-plugin-babel';
+import pluginTs from '@rollup/plugin-typescript';
+import pluginBabel from '@rollup/plugin-babel';
 import {terser as pluginTerser} from 'rollup-plugin-terser';
 import pkg from './package.json';
 
@@ -23,16 +22,13 @@ export default {
         }
     ],
     plugins: [
-        pluginClear({
-            targets: ['dist']
-        }),
-        pluginTypescript(),
         pluginNodeResolve(),
         pluginCommonjs(),
+        pluginTs(),
         pluginBabel({
-            presets: ['github'],
             exclude: 'node_modules/**',
-            extensions: ['.js', '.ts'],
+            babelHelpers: 'runtime',
+            extensions: ['.js', '.jsx', '.es6', '.es', '.mjs', '.ts', '.tsx'],
         }),
         pluginTerser()
     ]

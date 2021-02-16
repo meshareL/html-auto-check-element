@@ -1,15 +1,14 @@
 'use strict';
-import {debounce} from './strict';
-import {camelCase} from './util';
+import {debounce, camelCase} from 'lodash-es';
 
 const verifying = 'Verifying.....';
 const validationFailed = 'Validation failed';
-const checkFunctions = new WeakMap<HTMLAutoCheckElement, Function>();
-const validationMessages = new WeakMap<HTMLAutoCheckElement, { [key: string]: string }>();
+const checkFunctions = new WeakMap<HTMLAutoCheckElement, (element: HTMLAutoCheckElement) => void>();
+const validationMessages = new WeakMap<HTMLAutoCheckElement, Record<string, string>>();
 
 /**
- * HTML5验证错误类型
- * 去除customError与valid键
+ * HTML5验证错误类型<br>
+ * 去除 **customError** 与 **valid** 键
  */
 const errorTypes: string[] = [
     'typeMismatch',
